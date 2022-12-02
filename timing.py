@@ -10,12 +10,11 @@ from day{day} import main"""
 
 def time_day(day, mintime=1):
     print("-----## Assignment day {0} ##-----".format(day))
-    runs = 0
-    time = 0
+    runs = 1
+    time = timeit.timeit(f"main({day})", setup=setupstring(day), number=1)
+    sys.stdout = open(os.devnull, 'w')  # disable print statements
     while time < mintime:
         runs += 1
-        if runs > 1:
-            sys.stdout = open(os.devnull, 'w')  # disable print statements
         time += timeit.timeit(f"main({day})", setup=setupstring(day), number=1)
 
     sys.stdout = sys.__stdout__  # enable print statements again
