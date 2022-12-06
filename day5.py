@@ -9,22 +9,24 @@ def stacked_crates(data: List[str]) -> Tuple[str, str]:
 
     # create stacks
     stack_count = int(data[linebreak-1].split()[-1])
-    stacks = [deque() for i in range(stack_count)]
-    stacks2 = [deque() for i in range(stack_count)]  # part 2
-    for line in reversed(data[:stack_count-1]):  # reverse to build stacks from bottom and up
+    stacks = [list() for i in range(stack_count)]
+    stacks2 = [list() for i in range(stack_count)]  # part 2
+    for line in reversed(data[:linebreak-1]):  # reverse to build stacks from bottom and up
         for i in range(stack_count):
             value = line[i * 4 + 1]
             if value != ' ':
                 stacks[i].append(value)
                 stacks2[i].append(value)
 
-    for line in data[stack_count+1:]:
+    for line in data[linebreak+1:]:
         _, count, _, from_stack, _, to_stack = line.split()
-        tempstack = deque()  # part 2
-        for i in range(int(count)):
-            stacks[int(to_stack)-1].append(stacks[int(from_stack)-1].pop())
-            tempstack.appendleft(stacks2[int(from_stack)-1].pop())
-        stacks2[int(to_stack)-1].extend(tempstack)
+        count = int(count)
+        from_stack = int(from_stack)
+        to_stack = int(to_stack)
+        stacks[to_stack - 1].extend(reversed(stacks[from_stack-1][-count:]))
+        del stacks[from_stack - 1][-count:]
+        stacks2[to_stack - 1].extend(stacks2[from_stack - 1][-count:])
+        del stacks2[from_stack - 1][-count:]
 
     return ''.join([stack.pop() for stack in stacks]), ''.join([stack.pop() for stack in stacks2])
 
