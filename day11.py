@@ -2,6 +2,7 @@ import os
 from inputreader import aocinput
 from typing import List, Tuple
 from collections import deque
+from functools import reduce
 
 
 class Monkey:
@@ -14,10 +15,11 @@ class Monkey:
         self.inspected = 0
         self.worry_reduction = worry_reduction
 
-    def throw(self) -> Tuple[int, int]:
+    def throw(self, lcm: int) -> Tuple[int, int]:
         self.inspected += 1
-        result = self.operation(self.items.popleft()) // self.worry_reduction
-        if result % self.test:  # not divisble, mod left
+        # results grow exponentially, keep remainder after modulo lcm since anything above lcm is not useful
+        result = (self.operation(self.items.popleft()) // self.worry_reduction) % lcm
+        if result % self.test:  # result not divisible
             return self.false, result
         else:
             return self.true, result
@@ -25,33 +27,25 @@ class Monkey:
     def catch(self, value: int):
         self.items.append(value)
 
-    def __repr__(self):
-        return str(len(self.items))
-
 
 def monkey_business(data: List[str], worry_reduction, rounds) -> int:
-    monkeys = []
-    prev = [0, 0, 0, 0]
-    for i in range(0, len(data), 7):
-        monkeys.append(Monkey(data[i:i+7], worry_reduction))
+    monkeys = [Monkey(data[i:i+7], worry_reduction) for i in range(0, len(data), 7)]
+    lcm = reduce(lambda x, y: x * y, [monkey.test for monkey in monkeys])  # least common multiple, since all test integers seem prime
+
     for i in range(rounds):
         for monkey in monkeys:
             while monkey.items:
-                to, value = monkey.throw()
+                to, value = monkey.throw(lcm)
                 monkeys[to].catch(value)
-        current = [monkey.inspected for monkey in monkeys]
-        print([c - p for c, p in zip(current, prev)], sum([c - p for c, p in zip(current, prev)]))
-        prev = current
     inspected = sorted([monkey.inspected for monkey in monkeys])[-2:]
     return inspected[-1] * inspected[-2]
 
 
 def main(day):
     data = aocinput(day)
-    result = 0#monkey_business(data, 3, 20)
-    result2 = monkey_business(data, 1, 500)
+    result = monkey_business(data, 3, 20)
+    result2 = monkey_business(data, 1, 10000)
     print(result, result2)
-
 
 
 if __name__ == '__main__':
