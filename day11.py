@@ -6,7 +6,7 @@ from functools import reduce
 
 
 class Monkey:
-    def __init__(self, definition: List[str], worry_reduction):
+    def __init__(self, definition: List[str], worry_reduction: int):
         self.items = deque([int(value) for value in definition[1].replace(',', '').split()[2:]])
         self.operation = eval(definition[2].replace('Operation: new =', 'lambda old: '))
         self.test = int(definition[3].split()[-1])

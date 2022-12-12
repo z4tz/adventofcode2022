@@ -55,7 +55,6 @@ def calculate_foldersize(data: List[str]) -> Tuple[int, int]:
             get_sizes(f)
 
     get_sizes(basefolder)
-    print(sorted(folder_sizes))
     small_folders = [size for size in folder_sizes if size <= 100000]
     to_remove_size = min([folder_size for folder_size in folder_sizes if folder_size >= max(folder_sizes) - 40000000])
 
