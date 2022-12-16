@@ -1,9 +1,8 @@
 import os
 from inputreader import aocinput
-from typing import List, Tuple
 
 
-def overflow(data: List[str]) -> tuple[int, int]:
+def overflow(data: list[str]) -> tuple[int, int]:
     rock_coordinates = set()
     for line in data:
         coordinates = []
@@ -43,7 +42,7 @@ def overflow(data: List[str]) -> tuple[int, int]:
     return sandcount, sandcount2
 
 
-def drop_sand(abyss_start, rock_coordinates):
+def drop_sand(abyss_start: int, rock_coordinates: set[complex]):
     current = 500 + 0j
     while current.imag != abyss_start + 2:
         if current + 1j not in rock_coordinates:
