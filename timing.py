@@ -22,7 +22,7 @@ def time_day(day, mintime=1):
 
 
 def main():
-    days = range(18, len(os.listdir('inputs/')) + 1)
+    days = range(1, len(os.listdir('inputs/')) + 1)
 
     for day in days:
         time_day(day, 1)

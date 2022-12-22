@@ -1,70 +1,77 @@
 import os
 from inputreader import aocinput
-from itertools import product
+import math
 
 
-# remake solution, have a function that takes a machine state and produces all possible states
-# then put all states in queue and work through them
-
-def blueprint_quality(data: list[str]) -> int:
+def blueprint_quality(data: list[str], total_time) -> tuple[int, int]:
     blueprints = []
     for line in data:
         parts = line.split()
         blueprints.append(
             (int(parts[6]), int(parts[12]), (int(parts[18]), int(parts[21])), (int(parts[27]), int(parts[30]))))
-    geode_count = []
+    geode_counts = []
     for blueprint in blueprints:
-        time = 24
-        mine_geode(blueprint, [1, 4, 2, 2], 24)
-        print('------------')
-        # geode_count.append(max([mine_geode(blueprint, robot_max, time) for robot_max in product([1,2,3,4,5,6], repeat=4)]))
+        max_needed = [max([blueprint[0], blueprint[1], blueprint[2][0], blueprint[3][0]]), blueprint[2][1],
+                      blueprint[3][1]]
 
-    print(geode_count)
+        seen_states = set()
+        states = {((1, 0, 0, 0), (0, 0, 0, 0))}
+
+        for time in range(total_time):
+            new_states = set()
+            best_state = ((1, 0, 0, 0), (0, 0, 0, 0))
+            while states:
+                for state in process_state(blueprint, states.pop(), max_needed):
+                    if state[1][3] + 5 > best_state[1][3] and state[0][3] + 2 > best_state[0][3]:
+                        if state not in seen_states:
+                            if state[1][3] > best_state[1][3]:
+                                best_state = state
+                            new_states.add(state)
+                    seen_states.add(state)
+            states = new_states
+
+        best_state = max(new_states, key=lambda x: x[1][3])
+        geode_counts.append(best_state[1][3])
+
+    return sum([(i + 1) * count for i, count in enumerate(geode_counts)]), math.prod(geode_counts)
 
 
-def mine_geode(blueprint, robot_max, time):
-    robots = [1, 0, 0, 0]
-    resources = [0, 0, 0, 0]
-    # robot_max = [2, 4, 3, 5]
-    for t in range(time):
+def process_state(blueprint, state: tuple[tuple, tuple], max_robots) -> list[tuple[tuple, tuple]]:
+    (robots, resources) = state
+    new_resources = add_tuples(resources, robots)
 
-        # build new robots
-        new_robots = [0, 0, 0, 0]
+    new_states = []  # include state where no robot was purchased
 
-        if robots[0] < robot_max[0] and resources[0] >= blueprint[0]:
-            new_robots[0] += 1
-            resources[0] -= blueprint[0]
+    if resources[0] >= blueprint[3][0] and resources[2] >= blueprint[3][1]:
+        new_states.append(
+            (add_tuples(robots, (0, 0, 0, 1)), add_tuples(new_resources, (-blueprint[3][0], 0, -blueprint[3][1], 0))))
+        return new_states
 
-        if resources[0] >= blueprint[3][0] and resources[2] >= blueprint[3][1]:
-            new_robots[3] += 1
-            resources[0] -= blueprint[3][0]
-            resources[2] -= blueprint[3][1]
+    if resources[0] >= blueprint[0] and robots[0] < max_robots[0]:
+        new_states.append((add_tuples(robots, (1, 0, 0, 0)), add_tuples(new_resources, (-blueprint[0], 0, 0, 0))))
 
-        if robots[1] < robot_max[1] and resources[0] >= blueprint[1]:
-            new_robots[1] += 1
-            resources[0] -= blueprint[1]
+    if resources[0] >= blueprint[1] and robots[1] < max_robots[1]:
+        new_states.append((add_tuples(robots, (0, 1, 0, 0)), add_tuples(new_resources, (-blueprint[1], 0, 0, 0))))
 
-        if robots[2] < robot_max[2] and resources[0] >= blueprint[2][0] and resources[1] >= blueprint[2][1]:
-            new_robots[2] += 1
-            resources[0] -= blueprint[2][0]
-            resources[1] -= blueprint[2][1]
+    if resources[0] >= blueprint[2][0] and resources[1] >= blueprint[2][1] and robots[2] < max_robots[2]:
+        new_states.append(
+            (add_tuples(robots, (0, 0, 1, 0)), add_tuples(new_resources, (-blueprint[2][0], -blueprint[2][1], 0, 0))))
 
-        # add material
-        for material in range(4):
-            resources[material] += robots[material]
+    new_states.append((robots, new_resources))
 
-        print(t+1, robots, resources, new_robots)
+    return new_states
 
-        for i, new_robot in enumerate(new_robots):
-            robots[i] += new_robot
 
-    return resources[3]
+def add_tuples(tuple1, tuple2):
+    return tuple(a + b for a, b in zip(tuple1, tuple2))
 
 
 def main(day):
     data = aocinput(day)
-    result = blueprint_quality(data)
-    print(result)
+    result = blueprint_quality(data, 24)[0]
+    result2 = blueprint_quality(data[:3], 32)[1]
+    print(result, result2)
+    #print(result2)
 
 
 if __name__ == '__main__':
